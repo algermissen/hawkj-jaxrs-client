@@ -8,5 +8,6 @@ public interface HawkClientProvider {
 	
 	public HawkCredentials getCredentials(URI uri);
 
-	public int getClockOffset();
+	public long getClockOffset(URI uri);
+	
 }

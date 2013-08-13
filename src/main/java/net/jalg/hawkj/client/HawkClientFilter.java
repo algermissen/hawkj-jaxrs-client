@@ -25,7 +25,7 @@ import net.jalg.hawkj.AuthHeaderParsingException;
 import net.jalg.hawkj.AuthorizationHeader;
 import net.jalg.hawkj.HawkContext;
 import net.jalg.hawkj.HawkContext.HawkContextBuilder;
-import net.jalg.hawkj.HawkContext.HawkContextBuilder_B;
+import net.jalg.hawkj.HawkContext.HawkContextBuilder_C;
 import net.jalg.hawkj.ext.HawkCredentials;
 import net.jalg.hawkj.ext.InputStreamBuffer;
 import net.jalg.hawkj.HawkWwwAuthenticateContext;
@@ -51,8 +51,8 @@ public class HawkClientFilter implements ClientRequestFilter,
 			.getName());
 
 	private final HawkClientProvider hawkProvider;
-	private final boolean hashRequestPayload;
-	private final boolean validateResponsePayload;
+	private boolean hashRequestPayload;
+	private boolean validateResponsePayload;
 
 	/**
 	 * Create a new instance of this filter and interceptor.
@@ -61,11 +61,10 @@ public class HawkClientFilter implements ClientRequestFilter,
 	 * @param hashRequestPayload
 	 * @param validateResponsePayload
 	 */
-	public HawkClientFilter(HawkClientProvider hawkProvider,
-			boolean hashRequestPayload, boolean validateResponsePayload) {
+	public HawkClientFilter(HawkClientProvider hawkProvider) {
 		this.hawkProvider = hawkProvider;
-		this.hashRequestPayload = hashRequestPayload;
-		this.validateResponsePayload = validateResponsePayload;
+		this.hashRequestPayload = true;
+		this.validateResponsePayload = true;
 	}
 
 	@Override
@@ -83,8 +82,9 @@ public class HawkClientFilter implements ClientRequestFilter,
 		URI uri = requestContext.getUri();
 		
 		HawkCredentials credentials = hawkProvider.getCredentials(uri);
+		long offset = hawkProvider.getClockOffset(uri);
 		
-		HawkContextBuilder_B requestHawkBuilder = HawkContext.request(
+		HawkContextBuilder_C requestHawkBuilder = HawkContext.offset(offset).request(
 				requestContext.getMethod(), uri.getPath(), uri.getHost(),
 				uri.getPort()).credentials(
 				credentials.getId(),
@@ -110,7 +110,8 @@ public class HawkClientFilter implements ClientRequestFilter,
 		}
 
 		/*
-		 * Defer Authorization header creation to WriterInterceptor.
+		 * Ok, we have a body and we are configured to hash it. Thus
+		 * defer Authorization header creation to WriterInterceptor.
 		 */
 		requestContext.setProperty(HAWK_BUILDER_CLIENT_PROPERTY,
 				requestHawkBuilder);
@@ -120,7 +121,7 @@ public class HawkClientFilter implements ClientRequestFilter,
 	public void aroundWriteTo(WriterInterceptorContext context)
 			throws IOException, WebApplicationException {
 
-		HawkContextBuilder_B requestHawkBuilder = (HawkContextBuilder_B) context
+		HawkContextBuilder_C requestHawkBuilder = (HawkContextBuilder_C) context
 				.getProperty(HAWK_BUILDER_CLIENT_PROPERTY);
 		/*
 		 * If there is no HawkBuilder in the context, there is nothing for us to
@@ -248,7 +249,10 @@ public class HawkClientFilter implements ClientRequestFilter,
 				 * Actually *using* the timestamp is up to the client impl.
 				 * Coming here merely means that the filter has validated the
 				 * response so far.
+				 * FIXME: This could be made configurable to switch off.
+				 * See https://github.com/algermissen/hawkj-jaxrs-client/issues/1
 				 */
+				throw new HawkClockSkewTooLargeException(wwwAuthenticateHeader.getTs());
 			}
 		}
 
@@ -342,5 +346,15 @@ public class HawkClientFilter implements ClientRequestFilter,
 		return entity;
 
 	}
+
+	public void setIsHashRequestPayload(boolean hashRequestPayload) {
+		this.hashRequestPayload = hashRequestPayload;
+	}
+
+	public void setIsValidateResponsePayload(boolean validateResponsePayload) {
+		this.validateResponsePayload = validateResponsePayload;
+	}
+
+	
 
 }
