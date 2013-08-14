@@ -8,6 +8,20 @@ Status
 
 API is relatively stable, but might change until reaching 1.0.
 
+Maven Dependencies
+==================
+
+Include this in your pom.xml:
+
+
+    <dependency>
+      <groupId>net.jalg</groupId>
+      <artifactId>hawkj-jaxrs-client</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+
+
 
 Example Use
 ===========

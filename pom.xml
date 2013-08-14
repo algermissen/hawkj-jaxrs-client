@@ -7,15 +7,14 @@
     <artifactId>oss-parent</artifactId>
     <version>7</version>
   </parent>
-  
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.jalg</groupId>
   <artifactId>hawkj-jaxrs-client</artifactId>
   <packaging>jar</packaging>
 
-  <name>wkj-jaxrs-client</name>
-  <version>1.1-SNAPSHOT</version>
+  <name>hawkj-jaxrs-client</name>
+  <version>1.0-SNAPSHOT</version>
   <description>
     JAX-RS 2 client side filter for making Hawk authenticated requests.
   </description>
@@ -43,14 +42,13 @@
     <dependency>
       <groupId>net.jalg</groupId>
       <artifactId>hawkj</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>1.0</version>
     </dependency>
 
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
       <version>2.0</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
